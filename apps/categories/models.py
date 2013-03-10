@@ -29,7 +29,7 @@ class Category(MP_Node):
 
     def __unicode__(self):
         """return the unicode repr"""
-        return self.path
+        return self.name
 
     def save(self, *args, **kwargs):
         """

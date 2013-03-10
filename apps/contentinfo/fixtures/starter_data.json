@@ -1,0 +1,11 @@
+[
+    {
+        "pk": 1,
+        "model": "contentinfo.gfcontenttype",
+        "fields": {
+            "full_name": "Article",
+            "model_name": "Article",
+            "short_name": "ar"
+        }
+    }
+]

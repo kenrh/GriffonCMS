@@ -15,15 +15,23 @@ DATABASES = {
    'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'griffoncms',
-        'USER': 'pguser',
+        'USER': 'postgres',
         'PASSWORD' : 'root',
         'HOST' : 'localhost',
    }
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# GROUP_NAME is used by the caching structure to cache elements across multiple sites. All sites with a common GROUP_NAME will share cache.
+GROUP_NAME = 'griffoncms'
+# GROUP_CACHE_VERSION can be incremented/changed to break cache across all sites in a group.
+GROUP_CACHE_VERSION = 1
+
+# Multiple site settings.
 SITE_ID = 1
 SITE_DOMAIN = '127.0.0.1:8000'
+# SITE_PREFIX is used to cache things in a site-specific way.
 SITE_PREFIX = 'griffon_com'
 
 # Used as the from address for most emails.
@@ -39,7 +47,7 @@ MEDIA_URL = MEDIA_DOMAIN + '/'+SITE_PREFIX+'/'
 
 SECRET_KEY = '=u0x6&mz9k=tu+!m$=h_-s6u0-xn+yuvqvd)t^ujn+zrsrj9g^'
 
-#ROOT_URLCONF = 'cms.clusters.fl.sites.centrotampa_com.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
     # app default templates load from the app template folder using the
@@ -59,19 +67,15 @@ TEMPLATE_DIRS = (
 
 # site cache key prefix
 CACHE_MIDDLEWARE_KEY_PREFIX = SITE_PREFIX
+# Incrementing or changing cache version breaks site-specific cache.
 CACHE_VERSION = 1
+# Whether or not to cache the rendered HTML of content pages.
+CACHE_HTML = None
 
 # eprise cache default settings
 CACHE_BACKEND = 'memcached://127.0.0.1:11211/'
 CACHE_MIDDLEWARE_SECONDS = 60 * 3 # 3 minutes
 CACHE_LONG_SECONDS = 60 * 60 * 24 * 14 # 2 weeks max memcache
-CACHE_SEARCH_RSS_SECONDS = 60 * 60 # in search, cache an RSS feed for 1 hour
-CACHE_MIDDLEWARE_KEY_PREFIX = ''
-CACHE_VERSION = 1
-CACHE_HTML = None
-CACHE_PAGEMANAGER_SECONDS = 240
-
-CDN_CACHE_TIMEOUT = 240
 
 SESSION_SAVE_EVERY_REQUEST = False
 
@@ -94,28 +98,23 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     )
 
-# eprise template loaders
-# template loaders may not be added to anywhere else for CMS sites
-# template loaders may be overridden at cluster or site level if needed
+
 TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.load_template_source',
-    'django.template.loaders.app_directories.load_template_source',
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader'
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.core.context_processors.auth',
-    'django.core.context_processors.debug',
     'django.core.context_processors.i18n',
+    'django.core.context_processors.debug',
     'django.core.context_processors.media',
     'django.core.context_processors.request',
+    'django.contrib.auth.context_processors.auth',
+    'django.contrib.messages.context_processors.messages',
 )
 
 
 USE_I18N = False
-
-ADMINS = (
-    ('dukecms2', 'dukecms2@gmail.com'),
-)
 
 INSTALLED_APPS = (
     # DJANGO INCLUDES
@@ -129,6 +128,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.redirects',
+    'django.contrib.staticfiles',
     
     # EXTERNAL DEPENDENCIES
     'reversion',
@@ -137,7 +137,10 @@ INSTALLED_APPS = (
     # CMS APPS
     'apps.categories',
     'apps.content',
-    'apps.utilities'
+    'apps.contentinfo',
+    'apps.utilities',
+    'apps.media_library',
+    #'apps.utilities.managers'
     
 
     
@@ -147,12 +150,11 @@ INSTALLED_APPS = (
 
 INTERNAL_IPS = ('1.2.3.4',)
 
+STATIC_ROOT = 'static/'
+STATIC_URL = 'http://33.33.33.10:8000/static/'
 
 DEBUG = True
 FILE_UPLOAD_PERMISSIONS = 0775
-
-CLUSTER_PREFIX = None
-SITE_PREFIX = None
 
 
 

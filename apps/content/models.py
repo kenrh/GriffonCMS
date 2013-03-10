@@ -5,10 +5,12 @@ from django.conf import settings
 from django.core.cache import cache
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 
 from apps.categories.models import Category
 from apps.content.managers import GenericContentManager
 from apps.utilities.easychoice import EasyChoice, EasyChoices
+from apps.utilities.managers.content_cache_manager import GenericContentCacheManager
 
 ######################################
 # GENERIC CONTENT
@@ -73,7 +75,7 @@ class GenericContent(models.Model):
 
     title = models.CharField('title', max_length = 200)
     slug = models.SlugField('slug', help_text = "This field will be filled in automatically when you save.")
-    status = models.IntegerField('status', choices = STATUS_CHOICES, default = 2, help_text = "Content marked as Draft will be visible to staff only.")
+    status = models.IntegerField('status', choices = STATUS_CHOICES.choices(), default = STATUS_CHOICES.public, help_text = "Content marked as Draft will be visible to staff only.")
     allow_comments = models.BooleanField('allow comments', default = True, help_text = "If unchecked, users will not be allowed to leave new comments, but existing ones will be displayed.")
     display_comments = models.BooleanField('display comments', default = True, help_text = "If unchecked, existing comments will not be shown and new comments will not be allowed.")
     featured = models.BooleanField('featured', default=False, help_text="When a List is displayed, it may be set to move the most recently updated content flagged as featured to the top.")
@@ -83,6 +85,7 @@ class GenericContent(models.Model):
     expires_at = models.DateTimeField('expiration date', blank=True, null=True, help_text="The time at which this content will no longer be publicly visible.")
     one_off_credit_line = models.CharField('credit line', max_length = 200, help_text="The source of the content.", blank = True)
     one_off_byline = models.CharField('byline', max_length = 200, help_text="Replaces the staff member selection as the content author.", blank = True)
+    
     abstract = models.TextField(help_text = "The summary/explanation of what the content depicts.")
     authors = models.ManyToManyField(User)
     sites = models.ManyToManyField(Site, help_text='The sites that this content will display on.')
@@ -349,6 +352,7 @@ class Article(GenericContent):
     """
     TYPE_CHOICES = EasyChoices(
         EasyChoice(internal=1, label='Internal'),
+        EasyChoice(external=2, label='External'),
         EasyChoice(aggregated=2, label='Aggregated'),
     ) 
     
@@ -358,10 +362,17 @@ class Article(GenericContent):
     dateline = models.CharField('dateline', max_length = 200, help_text = "The location of the article. i.e, SPARTANBURG, S.C.", blank = True)
     article_type = models.IntegerField('article type', choices = TYPE_CHOICES.choices(), default = TYPE_CHOICES.internal, help_text = 'Internal - Normal article. External - Links to another site. Aggregated - Brought in by RSS from another site/URL.')
     external_url = models.CharField('external url', max_length = 300, help_text = "If the article is external, its link will be rendered as this URL. The URL should include the 'http://'.", blank = True)
-    poll = models.ForeignKey(Poll, blank=True, null=True, help_text='A poll associated with the article.')  
 
     
     class Meta:
         verbose_name = "Article"
         verbose_name_plural = "Articles"
         get_latest_by = "updated_at"
+        
+    def get_absolute_url(self):
+        return reverse('content_detail', args=[self.created_at.year, self.created_at.strftime('%b').lower(), self.created_at.day, self.slug, 'ar', self.id])
+    
+try:
+    reversion.register(Article)
+except:
+    pass
